@@ -1,3 +1,2 @@
 
-Location of the repository: https://timvkion.github.io/RCS_API/ and enable GitHub Pages.
-
+Location of the swagger documentation: https://timvkion.github.io/RCS_API/
