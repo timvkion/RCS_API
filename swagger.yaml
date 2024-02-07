@@ -11,14 +11,14 @@ info:
     Technical staff, project consultant, Host interface developer. 
   license:
     name: Apache 2.0
-host: "10.203.207.88:9003"
+host: "10.203.207.87:9003"
 schemes:
   - http
 paths:
   /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/submit:
     post:
       tags:
-        - Horizontal Transport
+        - Common interfaces
       summary: Horizontal Rack Transport Interface
       description: Horizontal Transport Job distribution, batch Job distribution is supported.
       parameters:
@@ -40,21 +40,23 @@ paths:
                 jobPriority:
                   type: integer
                   description: Priority of Job execution
+                  default: 1
                 letDownFlag:
                   type: integer
                   description: Indication on the jobtype 1:online Job, AGV will bring the rack to the destination without putting the rack down 2:offline Job, AGV puts down the rack when arriving at the destination
+                  default: 1
                 startMapCode:
                   type: string
                   description: Starting Map Code, required when multiple maps are active
                 rackCode:
                   type: string
-                  description: Rack No.
+                  description: Rack No., at least 1 start is required
                 startPoint:
                   type: string
-                  description: Start Point encoding
+                  description: Start Point encoding, at least 1 start is required
                 startPointName:
                   type: string
-                  description: Start Point short code
+                  description: Start Point short code, at least 1 start is required
                 startArea:
                   type: string
                   description: Starting Area
@@ -63,13 +65,13 @@ paths:
                   description: Target Map Code, required when multiple maps are active
                 targetPoint:
                   type: string
-                  description: Target Point encoding
+                  description: Target Point encoding, at least 1 target is required
                 targetPointName:
                   type: string
-                  description: Short code of target point
+                  description: Short code of target point, at least 1 target is required
                 targetArea:
                   type: string
-                  description: Target Area
+                  description: Target Area, at least 1 target is required
                 awaitArea:
                   type: string
                   description: Waiting for Area
@@ -94,10 +96,17 @@ paths:
                 needReset:
                   type: boolean
                   description: Whether Return to Warehouse is required. If it is not filled in, it is not required by default.
+                lockTime:
+                  type: integer
+                  description: Robot lock time
+                needOut:
+                  type: integer 
+                  description: Is rack out site after transport (0 - not out of site, 1 - out of site)
               required:
                 - upstreamOrderNo
                 - jobPriority
                 - letDownFlag
+                - rackTypeCode
       responses:
         '200':
           description: OK
@@ -116,77 +125,229 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-  /api/quicktron/jobreport:
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/group/submit:
     post:
       tags:
-        - Horizontal Transport
-      summary: Horizontal Job Completion Report Interface
-      description: Transport Job Order Status reporting.
-        
-        URL should be defined by Host system 
-        
-        By default the Job statusses are by default one of the following
-        
-          - qs
-          
-          - sq
-        
+        - Common interfaces
+      summary: Job Single Group Delivery Interface
+      description: Job single group delivery interface, Batch work order distribution is supported in the work order group.
       parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
         - name: body
           in: body
           required: true
-          description: JSON Body 
           schema:
-            type: object
-            properties:
-              upstreamOrderNo:
-                type: string
-                description: Upstream System job number
-              state:
-                type: string
-                description: Current job status
-              orderType:
-                type: string
-                description: Job Order Type
-              rackCode:
-                type: string
-                description: Shelf Code
-              robotCode:
-                type: string
-                description: Robot code of the assigned robot
-              workHeading:
-                type: string
-                description: Rack job target angle
-              startPoint:
-                type: string
-                description: Start point encoding
-              startPointName:
-                type: string
-                description: Start point name
-              startArea:
-                type: string
-                description: Start area encoding
-              targetPoint:
-                type: string
-                description: Target point encoding
-              targetPointName:
-                type: string
-                description: Target point name
-              targetArea:
-                type: string
-                description: Target area encoding
-              startMapCode:
-                type: string
-                description: Start map code
-              targetMapCode:
-                type: string
-                description: Target map code
-              
-              
-              
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderGroup:
+                  type: string
+                  description: Upstream system job group
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                priority:
+                  type: integer
+                  description: Priority of Job execution
+                  default: 1
+                orderGroupMode:
+                  type: string
+                  description: Specify the execution mode for job single groups (SINGLE - assign the same car to execute the job order in sequence, MULTIPLE - assign multiple cars to execute the job in sequence)
+                letDownFlag:
+                  type: integer
+                  description: Indication on the jobtype 1:online Job, AGV will bring the rack to the destination without putting the rack down 2:offline Job, AGV puts down the rack when arriving at the destination
+                  default: 1
+                sequence:
+                  type: integer
+                  description: Job group serial number
+                startMapCode:
+                  type: string
+                  description: Starting Map Code, required when multiple maps are active
+                rackCode:
+                  type: string
+                  description: Rack No., at least 1 start is required
+                startPoint:
+                  type: string
+                  description: Start Point encoding, at least 1 start is required
+                startPointName:
+                  type: string
+                  description: Start Point short code, at least 1 start is required
+                startArea:
+                  type: string
+                  description: Starting Area
+                targetMapCode:
+                  type: string
+                  description: Target Map Code, required when multiple maps are active
+                targetPoint:
+                  type: string
+                  description: Target Point encoding, at least 1 target is required
+                targetPointName:
+                  type: string
+                  description: Short code of target point, at least 1 target is required
+                targetArea:
+                  type: string
+                  description: Target Area, at least 1 target is required
+                awaitArea:
+                  type: string
+                  description: Waiting for Area
+                rackTypeCode:
+                  type: string
+                  description: Shelf Type encoding
+                robotType:
+                  type: string
+                  description: Specify Robot Type
+                robotCode:
+                  type: string
+                  description: Robot Code, specifying the robot execution Job
+                workHeading:
+                  type: string
+                  description: Rack job angle, 0, 90, 180, -90
+                needOperation:
+                  type: boolean
+                  description: Do you need practical operation? If you don't fill it in, you won't do practical operation by default.
+                lockTime:
+                  type: integer
+                  description: Robot lock time
+                needOut:
+                  type: integer 
+                  description: Is rack out site after transport (0 - not out of site, 1 - out of site)
+              required:
+                - upstreamOrderNo
+                - jobPriority
+                - letDownFlag
+                - rackTypeCode
       responses:
         '200':
           description: OK
-        '400':
-          description: Bad Request
-        
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/robotMove:
+    post:
+      tags:
+        - Common interfaces
+      summary: Robot Move Job Order Issue Interface
+      description: Robot Move Job Order Issue Interface, batch robot Move job order distribution is supported
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderGroup:
+                  type: string
+                  description: Upstream system job group
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                priority:
+                  type: integer
+                  description: Priority of Job execution
+                  default: 1
+                orderGroupMode:
+                  type: string
+                  description: Specify the execution mode for job single groups (SINGLE - assign the same car to execute the job order in sequence, MULTIPLE - assign multiple cars to execute the job in sequence)
+                letDownFlag:
+                  type: integer
+                  description: Indication on the jobtype 1:online Job, AGV will bring the rack to the destination without putting the rack down 2:offline Job, AGV puts down the rack when arriving at the destination
+                  default: 1
+                sequence:
+                  type: integer
+                  description: Job group serial number
+                startMapCode:
+                  type: string
+                  description: Starting Map Code, required when multiple maps are active
+                rackCode:
+                  type: string
+                  description: Rack No., at least 1 start is required
+                startPoint:
+                  type: string
+                  description: Start Point encoding, at least 1 start is required
+                startPointName:
+                  type: string
+                  description: Start Point short code, at least 1 start is required
+                startArea:
+                  type: string
+                  description: Starting Area
+                targetMapCode:
+                  type: string
+                  description: Target Map Code, required when multiple maps are active
+                targetPoint:
+                  type: string
+                  description: Target Point encoding, at least 1 target is required
+                targetPointName:
+                  type: string
+                  description: Short code of target point, at least 1 target is required
+                targetArea:
+                  type: string
+                  description: Target Area, at least 1 target is required
+                awaitArea:
+                  type: string
+                  description: Waiting for Area
+                rackTypeCode:
+                  type: string
+                  description: Shelf Type encoding
+                robotType:
+                  type: string
+                  description: Specify Robot Type
+                robotCode:
+                  type: string
+                  description: Robot Code, specifying the robot execution Job
+                workHeading:
+                  type: string
+                  description: Rack job angle, 0, 90, 180, -90
+                needOperation:
+                  type: boolean
+                  description: Do you need practical operation? If you don't fill it in, you won't do practical operation by default.
+                lockTime:
+                  type: integer
+                  description: Robot lock time
+                needOut:
+                  type: integer 
+                  description: Is rack out site after transport (0 - not out of site, 1 - out of site)
+              required:
+                - upstreamOrderNo
+                - jobPriority
+                - letDownFlag
+                - rackTypeCode
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
