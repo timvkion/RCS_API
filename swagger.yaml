@@ -257,44 +257,13 @@ paths:
             items:
               type: object
               properties:
-                upstreamOrderGroup:
-                  type: string
-                  description: Upstream system job group
                 upstreamOrderNo:
                   type: string
                   description: Upstream system job number, globally Unique
-                priority:
+                jobPriority:
                   type: integer
                   description: Priority of Job execution
                   default: 1
-                orderGroupMode:
-                  type: string
-                  description: Specify the execution mode for job single groups (SINGLE - assign the same car to execute the job order in sequence, MULTIPLE - assign multiple cars to execute the job in sequence)
-                letDownFlag:
-                  type: integer
-                  description: Indication on the jobtype 1:online Job, AGV will bring the rack to the destination without putting the rack down 2:offline Job, AGV puts down the rack when arriving at the destination
-                  default: 1
-                sequence:
-                  type: integer
-                  description: Job group serial number
-                startMapCode:
-                  type: string
-                  description: Starting Map Code, required when multiple maps are active
-                rackCode:
-                  type: string
-                  description: Rack No., at least 1 start is required
-                startPoint:
-                  type: string
-                  description: Start Point encoding, at least 1 start is required
-                startPointName:
-                  type: string
-                  description: Start Point short code, at least 1 start is required
-                startArea:
-                  type: string
-                  description: Starting Area
-                targetMapCode:
-                  type: string
-                  description: Target Map Code, required when multiple maps are active
                 targetPoint:
                   type: string
                   description: Target Point encoding, at least 1 target is required
@@ -304,35 +273,123 @@ paths:
                 targetArea:
                   type: string
                   description: Target Area, at least 1 target is required
-                awaitArea:
+                startMapCode:
                   type: string
-                  description: Waiting for Area
-                rackTypeCode:
+                  description: Starting Map Code, required when multiple maps are active
+                targetMapCode:
                   type: string
-                  description: Shelf Type encoding
+                  description: Target Map Code, required when multiple maps are active
                 robotType:
                   type: string
                   description: Specify Robot Type
                 robotCode:
                   type: string
                   description: Robot Code, specifying the robot execution Job
-                workHeading:
+                deadline:
                   type: string
-                  description: Rack job angle, 0, 90, 180, -90
-                needOperation:
-                  type: boolean
-                  description: Do you need practical operation? If you don't fill it in, you won't do practical operation by default.
+                  description: Job execution is required to be completed before the deadline, in the format of yyyy-MM-dd HH:mm:ss
                 lockTime:
                   type: integer
                   description: Robot lock time
-                needOut:
-                  type: integer 
-                  description: Is rack out site after transport (0 - not out of site, 1 - out of site)
               required:
                 - upstreamOrderNo
                 - jobPriority
-                - letDownFlag
-                - rackTypeCode
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/cancel:
+    post:
+      tags:
+        - Common interfaces
+      summary: Robot Move Job Order Issue Interface
+      description: Robot Move Job Order Issue Interface, batch robot Move job order distribution is supported
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                executeMode:
+                  type: string
+                  description: Executing mode - RETURN_WAREHOUSE, CURRENT_POINT_LIFT_UP, CURRENT_POINT_PUT_DOWN, TARGET_POINT_PUT_DOWN
+                putDownCode:
+                  type: string
+                  description: Select the drop point encoding
+                mapCode:
+                  type: string
+                  description: Map code
+              required:
+                - upstreamOrderNo
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/operationNotice:
+    post:
+      tags:
+        - Common interfaces
+      summary: Practical Operation Work Sheet
+      description: Call the interface after the Workstation Job operation is completed. If Rack have other Job to perform other Job. Online Workstation Rack directly return to the warehouse, offline Workstation allocation robot return to the warehouse
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                rackCode:
+                  type: string
+                  description: Rack number
+              required:
+                - upstreamOrderNo
       responses:
         '200':
           description: OK
