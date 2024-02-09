@@ -408,3 +408,278 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/rack-cross/submit:
+    post:
+      tags:
+        - Common interfaces
+      summary: Rack Cross-Floor Transport Order Management Distribution Interface
+      description: Support batch Job distribution, Only cross-floor job order distribution is supported.
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                jobPriority:
+                  type: integer
+                  description: Priority of job execution
+                letDownFlag:
+                  type: integer
+                  description: Indication on the jobtype 1:online Job, AGV will bring the rack to the destination without putting the rack down 2:offline Job, AGV puts down the rack when arriving at the destination
+                startMapCode:
+                  type: string
+                  description: Starting map code
+                rackCode:
+                  type: string
+                  description: Rack number
+                startPoint:
+                  type: string
+                  description: start point encoding
+                startPointName:
+                  type: string
+                  description: start point short code
+                targetMapCode:
+                  type: string
+                  description: Target map code
+                targetPoint:
+                  type: string
+                  description: Target point encoding 
+                targetPointName:
+                  type: string
+                  description: Short code of target point
+                rackTypeCode:
+                  type: string
+                  description: Shelf type encoding 
+                robotType:
+                  type: string
+                  description: Specify robot type
+                robotCode:
+                  type: string
+                  description: Robot code
+                workHeading:
+                  type: string
+                  description: Rack job angle, 0,90,180,-90
+                needOut:
+                  type: integer
+                  description: Is rack out site after transport (0 - not out of site, 1 - out of site)
+                elevatorType:
+                  type: string
+                  description: Elevator label
+                backStartMap:
+                  type: string
+                  description: Robot if start floor needs to be back after transport
+              required:
+                - upstreamOrderNo
+                - jobPriority
+                - letDownFlag
+                - startMapCode
+                - targetMapCode
+                - targetPoint
+                - targetPointName
+                - rackTypeCode
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/transport-order/carrier/robot-cross/submit:
+    post:
+      tags:
+        - Common interfaces
+      summary: Robot Empty Car Cross-Floor Move Work Order Issue Interface
+      description: Batch Job distribution is supported, and only cross-floor job order distribution is supported.
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                upstreamOrderNo:
+                  type: string
+                  description: Upstream system job number, globally Unique
+                jobPriority:
+                  type: integer
+                  description: Priority of job execution
+                startMapCode:
+                  type: string
+                  description: Starting map code
+                targetMapCode:
+                  type: string
+                  description: Target map code
+                targetPoint:
+                  type: string
+                  description: Target point
+                targetPointName:
+                  type: string
+                  description: Short code of target point
+                robotCode:
+                  type: string
+                  description: Robot code
+                robotType:
+                  type: string
+                  description: Specify robot type
+                elevatorType:
+                  type: string
+                  description: Elevator label
+              required:
+                - upstreamOrderNo
+                - jobPriority
+                - startMapCode
+                - targetMapCode
+                - targetPoint
+                - targetPointName
+                - robotCode
+                - robotType
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/carrier/rack/in:
+    post:
+      tags:
+        - Optional interfaces
+      summary: Rack admission
+      description: When a new Rack enters the market, you can call this interface to update the basic data. Before entering the market, the shelf must already exist in the system. Verify the Rack information.
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                rackCode:
+                  type: string
+                  description: Rack number
+                heading:
+                  type: integer
+                  description: Shelf angle
+                pointCode:
+                  type: string
+                  description: Entry point encoding
+                pointName:
+                  type: string
+                  description: Entry point code
+                mapCode:
+                  type: string
+                  description: Map code
+              required:
+                - rackCode
+                - pointCode
+                - pointName
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/quicktron/rss/warehouse/{warehouseId}/carrier/rack/out:
+    post:
+      tags:
+        - Optional interfaces
+      summary: Rack out site
+      description: This interface can be called when the Rack Out Site to remove Rack Coordinates information from the fast warehouse system.
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                rackCode:
+                  type: string
+                  description: Rack number
+                pointCode:
+                  type: string
+                  description: Entry point encoding
+                pointName:
+                  type: string
+                  description: Entry point code
+                mapCode:
+                  type: string
+                  description: Map code
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+        '201':
+          description: Created  
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
